@@ -1,0 +1,42 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install JMeter
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jmeter
+
+      - name: Run Performance Tests
+        run: |
+          jmeter -n -t /Users/pancag/Documents/Estudos/Empresas/dog-api-tests/dog-api-tests-performance/teste.jmx -l results.jtl -j jmeter.log
+
+      - name: Analyze Results
+        run: |
+          echo "Analisando resultados..."
+          if grep -q "ERROR" results.jtl; then
+            echo "Test failed!"
+            exit 1
+          else
+            echo "All tests passed!"
+          fi
+          
+      - name: Upload Results
+        uses: actions/upload-artifact@v4 
+        with:
+          name: performance-results
+          path: results.jtl 
